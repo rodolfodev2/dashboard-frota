@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Frota - APM Terminals</title>
+    <style>
+        :root {
+            --verde: #2ecc71;
+            --vermelho: #e74c3c;
+            --fundo: #dddbd8;
+            --card-bg: #ffffff;
+            --texto: #2c3e50;
+            --azul-escuro: #34495e;
+            --roxo-bitrem: #8e44ad;
+            --amarelo-prancha: #f1c40f; /* NOVA COR: AMARELO */
+            --cinza-rebaixada: #7f8c8d;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--fundo);
+            color: var(--texto);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header { text-align: center; margin-bottom: 15px; width: 98%; max-width: 2500px; }
+
+        #relogio-container {
+            background: var(--azul-escuro);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        #hora { font-size: 1.8rem; font-weight: bold; display: block; }
+        #data { font-size: 0.9rem; opacity: 0.8; }
+
+        .secao-container {
+            background: var(--card-bg);
+            width: 98%;
+            max-width: 2500px;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border-top: 10px solid var(--azul-escuro);
+            box-sizing: border-box;
+        }
+
+        .flex-row-triplo {
+            display: flex;
+            width: 98%;
+            max-width: 2500px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .secao-flex-3 {
+            background: var(--card-bg);
+            flex: 1;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-top: 10px solid var(--azul-escuro);
+            box-sizing: border-box;
+        }
+
+        .header-secao { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .titulo-grupo h2 { margin: 0; color: var(--azul-escuro); font-size: 1.3rem; }
+        .titulo-grupo p { margin: 2px 0 0; opacity: 0.6; font-size: 0.8rem; }
+
+        .status-mini { text-align: right; }
+        .valor-porcentagem { font-size: 2.8rem; font-weight: 800; color: var(--verde); line-height: 1; }
+        .status-mini small { display: block; font-size: 1.1rem; font-weight: 700; margin-top: 3px; color: var(--azul-escuro); text-transform: uppercase; }
+
+        .grid-equipamentos { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+
+        .equipamento {
+            padding: 20px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 700;
+            color: white;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.05);
+            border-bottom: 4px solid rgba(0,0,0,0.2);
+            user-select: none;
+            font-size: 0.95rem;
+            position: relative;
+        }
+
+        .tipo-tag {
+            display: block;
+            font-size: 0.75rem;
+            background: rgba(0,0,0,0.3);
+            margin-top: 6px;
+            border-radius: 4px;
+            padding: 3px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .disponivel { background-color: var(--verde); }
+        .manutencao { background-color: var(--vermelho); }
+
+        /* ESTILOS ESPECÍFICOS TT OPERATIVOS */
+        .tt-bitrem.disponivel { background-color: var(--roxo-bitrem) !important; border-bottom: 5px solid #5e2d71; }
+
+        /* AJUSTE SOLICITADO: PRANCHA AMARELA */
+        .tt-prancha.disponivel {
+            background-color: var(--amarelo-prancha) !important;
+            border-bottom: 5px solid #b7950b;
+            color: black; /* Texto preto para contraste no fundo amarelo */
+        }
+        /* Ajuste da tag de tipo para a prancha amarela */
+        .tt-prancha.disponivel .tipo-tag {
+            background: rgba(0,0,0,0.1);
+            color: black;
+        }
+
+        .tt-rebaixada.disponivel { background-color: var(--cinza-rebaixada) !important; border-bottom: 5px solid #566573; }
+
+        .btn-reset { margin-bottom: 15px; padding: 8px 18px; border: none; background: #7f8c8d; color: white; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+        @media (max-width: 1200px) { .flex-row-triplo { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div id="relogio-container">
+        <span id="hora">00:00:00</span>
+        <span id="data">Carregando data...</span>
+    </div>
+    <h1>DASHBOARD EQUIPAMENTOS - APM TERMINALS</h1>
+    <p style="font-size: 0.9rem; font-weight: bold; color: var(--azul-escuro);">
+        CLIQUE DIREITO NA TT: NORMAL > SIMPLES > BITREM > PRANCHA > REBAIXADA
+    </p>
+</header>
+
+<button class="btn-reset" onclick="resetarDados()">Limpar e Atualizar Frota (Reset)</button>
+
+<div class="secao-container">
+    <div class="header-secao">
+        <div class="titulo-grupo">
+            <h2>TERMINAL TRACTOR</h2>
+            <p>01 a 32 | Cores: <span style="color:var(--roxo-bitrem)">Bitrem</span>, <span style="color:var(--amarelo-prancha); background-color: rgba(0,0,0,0.7); padding: 2px 4px; border-radius: 4px;">Prancha (Amarela)</span>, <span style="color:var(--cinza-rebaixada)">Rebaixada</span></p>
+        </div>
+        <div class="status-mini">
+            <div id="perc-tt" class="valor-porcentagem">0%</div>
+            <small><span id="qtd-tt">0/0</span> DISPONÍVEIS</small>
+        </div>
+    </div>
+    <div class="grid-equipamentos" id="grid-tt"></div>
+</div>
+
+<div class="secao-container">
+    <div class="header-secao">
+        <div class="titulo-grupo">
+            <h2>REACH STACKER</h2>
+            <p>Frotas 13 a 34 + Alugadas (RSU)</p>
+        </div>
+        <div class="status-mini">
+            <div id="perc-rs" class="valor-porcentagem">0%</div>
+            <small><span id="qtd-rs">0/0</span> DISPONÍVEIS</small>
+        </div>
+    </div>
+    <div class="grid-equipamentos" id="grid-rs"></div>
+</div>
+
+<div class="flex-row-triplo">
+    <div class="secao-flex-3"><div class="header-secao"><div class="titulo-grupo"><h2>RTG</h2><p>01 a 03</p></div><div class="status-mini"><div id="perc-rtg" class="valor-porcentagem">0%</div><small><span id="qtd-rtg">0/0</span> OK</small></div></div><div class="grid-equipamentos" id="grid-rtg"></div></div>
+    <div class="secao-flex-3"><div class="header-secao"><div class="titulo-grupo"><h2>SHIP TO SHORE (STS)</h2><p>01 a 04</p></div><div class="status-mini"><div id="perc-sts" class="valor-porcentagem">0%</div><small><span id="qtd-sts">0/0</span> OK</small></div></div><div class="grid-equipamentos" id="grid-sts"></div></div>
+    <div class="secao-flex-3"><div class="header-secao"><div class="titulo-grupo"><h2>BARDELLA</h2><p>01 a 03</p></div><div class="status-mini"><div id="perc-bardella" class="valor-porcentagem">0%</div><small><span id="qtd-bardella">0/0</span> OK</small></div></div><div class="grid-equipamentos" id="grid-bardella"></div></div>
+</div>
+
+<script>
+    const frotasDefinicao = [
+        { id: 'tt', nome: 'TT', inicio: 1, fim: 32 },
+        { id: 'rs', nome: 'RS', inicio: 13, fim: 34 },
+        { id: 'rtg', nome: 'RTG', inicio: 1, fim: 3 },
+        { id: 'sts', nome: 'STS', inicio: 1, fim: 4 },
+        { id: 'bardella', nome: 'BARD', inicio: 1, fim: 3 }
+    ];
+
+    let dadosFrota = {};
+
+    function atualizarRelogio() {
+        const agora = new Date();
+        document.getElementById('hora').innerText = agora.toLocaleTimeString('pt-BR');
+        document.getElementById('data').innerText = agora.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    setInterval(atualizarRelogio, 1000);
+    atualizarRelogio();
+
+    function gerarNovaFrota(config) {
+        let lista = [];
+        for (let i = config.inicio; i <= config.fim; i++) {
+            lista.push({
+                label: `${config.nome}-${String(i).padStart(2, '0')}`,
+                status: 'disponivel',
+                tipo: 'Normal'
+            });
+        }
+        if (config.id === 'rs') {
+            [15, 16, 17].forEach(num => {
+                lista.push({ label: `RSU-${num}`, status: 'disponivel', tipo: 'Normal' });
+            });
+        }
+        return lista;
+    }
+
+    function renderizarTudo() {
+        frotasDefinicao.forEach(config => {
+            const grid = document.getElementById(`grid-${config.id}`);
+            const percTxt = document.getElementById(`perc-${config.id}`);
+            const qtdTxt = document.getElementById(`qtd-${config.id}`);
+            if (!grid) return;
+
+            grid.innerHTML = '';
+            let disp = 0;
+            const lista = dadosFrota[config.id];
+
+            lista.forEach((item, index) => {
+                if (item.status === 'disponivel') disp++;
+                const card = document.createElement('div');
+
+                let classeEspecial = '';
+                if (config.id === 'tt') {
+                    if (item.tipo === 'Bitrem') classeEspecial = 'tt-bitrem';
+                    if (item.tipo === 'Prancha') classeEspecial = 'tt-prancha';
+                    if (item.tipo === 'Rebaixada') classeEspecial = 'tt-rebaixada';
+                }
+
+                card.className = `equipamento ${item.status} ${classeEspecial}`;
+                card.innerHTML = `<div>${item.label}</div>${config.id === 'tt' && item.tipo !== 'Normal' ? `<div class="tipo-tag">${item.tipo}</div>` : ''}`;
+
+                card.onclick = () => alternarStatus(config.id, index);
+
+                if (config.id === 'tt') {
+                    card.oncontextmenu = (e) => {
+                        e.preventDefault();
+                        alternarTipoTT(index);
+                    };
+                }
+
+                grid.appendChild(card);
+            });
+
+            const total = lista.length;
+            const porcentagem = Math.round((disp / total) * 100);
+            percTxt.innerText = `${porcentagem}%`;
+            qtdTxt.innerText = `${disp}/${total}`;
+            percTxt.style.color = porcentagem < 60 ? 'var(--vermelho)' : 'var(--verde)';
+        });
+        localStorage.setItem('db_frota_v11', JSON.stringify(dadosFrota));
+    }
+
+    function alternarStatus(frotaId, index) {
+        dadosFrota[frotaId][index].status = (dadosFrota[frotaId][index].status === 'disponivel') ? 'manutencao' : 'disponivel';
+        renderizarTudo();
+    }
+
+    function alternarTipoTT(index) {
+        const tipos = ['Normal', 'Simples', 'Bitrem', 'Prancha', 'Rebaixada'];
+        let atual = tipos.indexOf(dadosFrota['tt'][index].tipo || 'Normal');
+        let proximo = (atual + 1) % tipos.length;
+        dadosFrota['tt'][index].tipo = tipos[proximo];
+        renderizarTudo();
+    }
+
+    function inicializarDados() {
+        const salvos = localStorage.getItem('db_frota_v11');
+        if (salvos) {
+            dadosFrota = JSON.parse(salvos);
+        } else {
+            frotasDefinicao.forEach(f => dadosFrota[f.id] = gerarNovaFrota(f));
+        }
+        renderizarTudo();
+    }
+
+    function resetarDados() {
+        if(confirm("Deseja resetar os dados?")) {
+            localStorage.removeItem('db_frota_v11');
+            location.reload();
+        }
+    }
+
+    window.onload = inicializarDados;
+</script>
+</body>
+</html>
