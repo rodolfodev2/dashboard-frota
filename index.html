@@ -2,93 +2,6 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-      <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCwcpX0bdgogMCIvtk8eEXo460yDnLb7jw",
-            authDomain: "dashboard-equipamentos.firebaseapp.com",
-            projectId: "dashboard-equipamentos",
-            storageBucket: "dashboard-equipamentos.firebasestorage.app",
-            messagingSenderId: "661115419152",
-            appId: "1:661115419152:web:aedf2e8fe97d83461b6895"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        window.db = db;
-        window.ref = ref;
-        window.onValue = onValue;
-        window.set = set;
-    </script>
-    <style>
-        :root { --verde: #2ecc71; --vermelho: #e74c3c; --fundo: #dddbd8; --azul-escuro: #34495e; --roxo-bitrem: #8e44ad; --amarelo-prancha: #f1c40f; --cinza-rebaixada: #7f8c8d; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--fundo); padding: 10px; text-align: center; }
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; max-width: 1200px; margin: auto; }
-        .equipamento { padding: 15px; border-radius: 8px; color: white; font-weight: bold; cursor: default; border-bottom: 4px solid rgba(0,0,0,0.2); }
-        .disponivel { background-color: var(--verde); }
-        .manutencao { background-color: var(--vermelho); }
-        .edit-enabled { cursor: pointer; border: 2px dashed white; }
-        .btn-admin { position: fixed; bottom: 20px; right: 20px; background: var(--azul-escuro); color: white; padding: 15px; border-radius: 50px; cursor: pointer; z-index: 100; }
-    </style>
-</head>
-<body>
-<p id="msg-status">Modo Leitura (Visualização)</p>
-<div id="grid-container" class="grid-container"></div>
-<div class="btn-admin" onclick="alternarModo()">🔓 Admin</div>
-
-<script type="module">
-    let editMode = false;
-    let dados = {};
-
-    window.alternarModo = () => {
-        if (!editMode) {
-            let senha = prompt("Digite a senha de administrador:");
-            if (senha === "Apm2026@") {
-                editMode = true;
-                document.getElementById('msg-status').innerText = "Modo EDIÇÃO ATIVO";
-            } else {
-                alert("Senha incorreta!");
-                return;
-            }
-        } else {
-            editMode = false;
-            document.getElementById('msg-status').innerText = "Modo Leitura (Visualização)";
-        }
-        renderizar();
-    };
-
-    onValue(ref(db, 'frota'), (snapshot) => {
-        dados = snapshot.val() || {};
-        renderizar();
-    });
-
-    function renderizar() {
-        const container = document.getElementById('grid-container');
-        container.innerHTML = '';
-        
-        for(let id in dados) {
-            let card = document.createElement('div');
-            card.className = `equipamento ${dados[id].status} ${editMode ? 'edit-enabled' : ''}`;
-            card.innerText = id;
-            
-            if(editMode) {
-                card.onclick = () => {
-                    let novoStatus = dados[id].status === 'disponivel' ? 'manutencao' : 'disponivel';
-                    set(ref(db, 'frota/' + id + '/status'), novoStatus);
-                };
-            }
-            container.appendChild(card);
-        }
-    }
-</script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Frota - APM Terminals</title>
     <style>
@@ -386,6 +299,7 @@
 </body>
 
 </html>
+
 
 
 
